@@ -47,8 +47,21 @@
 ## 4. Snags & Resolutions Log
 *(Updated dynamically as checkpoints are executed)*
 
-- *Initial Inspection:* Verified Node v25.3.0, npm 11.7.0, Docker 29.8.0. No port conflicts on default Harper ports 9925/9926.
-- *(More entries added during execution)*
+- **Initial Inspection:** Verified Node v25.3.0, npm 11.7.0, Docker 29.8.0. No port conflicts on default Harper ports 9925/9926.
+- **Scaffold Findings (Checkpoint 1):**
+  - Generated Harper 5.2.13 `vanilla-ts` template.
+  - Template structure nuances discovered:
+    - Schemas are loaded from `schemas/*.graphql` (configured via `graphqlSchema: files: 'schemas/*.graphql'` in `config.yaml`).
+    - Static web assets are served from `web/*` via `static: files: 'web/*'`.
+    - Codegen is configured via `@harperfast/schema-codegen` writing to `schemas/globalTypes.d.ts` and `schemas/types.ts`.
+    - Generated `.agents/skills/harper-best-practices/` containing official Harper 5.x rules.
+- **Dockerization Snag & Resolution (Checkpoint 2):**
+  - *Snag:* When starting the container for the first time, Harper's first-run installer prompted for interactive inputs (`Please enter a destination for Harper...`), which crashed in Docker with `[ERR_USE_AFTER_CLOSE]`.
+  - *Resolution:* Inspected Harper's `utility/install/installer.js` and discovered that passing `HDB_ADMIN_USERNAME`, `HDB_ADMIN_PASSWORD`, `ROOTPATH=/root/harper`, `TC_AGREEMENT=yes`, and `DEFAULTS_MODE=dev` triggers non-interactive unattended installation. Executed `RUN harper install` inside `Dockerfile`. Container now boots directly into `harper dev .` in under 1 second.
+- **Local Verification (Checkpoint 2):**
+  - Tested `curl -i http://localhost:9926/` -> `HTTP/1.1 200 OK`.
+  - Verified hot-reloading volume mounts from macOS to container.
+  - Host Harper CLI verified at `/opt/homebrew/bin/harper` (v5.2.13).
 
 ---
 
