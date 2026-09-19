@@ -72,7 +72,7 @@ The project was executed incrementally through 10 disciplined checkpoints:
 
 ### Checkpoint 0: Work Log & Git Setup
 * **Objective:** Establish the audit trail, initialize the repository, and configure the GitHub remote.
-* **Outcome:** Created [`NOTES.md`](../NOTES.md) tracking assumptions, scope guardrails, snags, and rationales.
+* **Outcome:** Created [`NOTES.md`](./NOTES.md) tracking assumptions, scope guardrails, snags, and rationales.
 * **Snippet:**
   ```sh
   git init
@@ -341,7 +341,7 @@ The project was executed incrementally through 10 disciplined checkpoints:
 
 ### Checkpoint 10: Documentation & Presentation Notes
 * **Objective:** Deliver production-ready documentation and interview walkthrough talking points.
-* **Outcome:** Completed `fidari-harper-pilot/README.md`, `walkthrough.md` with visual artifacts, and `NOTES.md` containing engineering snags, design rationales, and FDE presentation talking points.
+* **Outcome:** Completed `README.md`, `walkthrough.md` with visual artifacts, and `NOTES.md` containing engineering snags, design rationales, and FDE presentation talking points.
 
 ---
 
