@@ -126,6 +126,15 @@
     - Entered customer name "Ronnie Taylor", submitted order, verified order created in Harper (`tables.Order`), and confirmation receipt displayed with total $14.50 and UUID `342e0e49-b9a1-4f86-b714-5f48823c18a3`.
     - Clicked "Place Another Order" and verified form reset cleanly to initial state.
     - Zero browser console errors throughout entire flow.
+- **Automated Smoke Test Suite (Checkpoint 8):**
+  - Created native `test/smoke.test.js` exercising the full vertical slice using Node 25's built-in test runner (`node:test`) and assertions (`node:assert/strict`).
+  - Automated assertions covering:
+    1. Public Menu & Static Assets: Validates `/Pizza/` returns $\ge 3$ pizzas, `/Topping/` returns $\ge 5$ toppings, and static asset `/images/pizzas/margherita.jpg` returns HTTP 200 with non-empty payload.
+    2. Table Access Protection: Confirms unauthenticated direct requests to `GET /Order/` and `POST /Order/` return `401 Unauthorized`.
+    3. Input Validation & Error Handling: Confirms empty customer name returns `400 Bad Request`, missing pizzaId returns `400 Bad Request`, non-existent pizzaId returns `404 Not Found`, and non-existent toppingId returns `404 Not Found`.
+    4. Server-Authoritative Pricing & Snapshots: Submits order with intentional client-spoofed prices (`basePriceCents: 10, totalCents: 15`), verifies server ignores client values, calculates exact integer cents ($14.50), snapshots pizza name & topping names, and sets initial status `placed`.
+    5. Deduplication: Submits duplicate toppings in an order, verifies deduplication to 1 topping and prices counted only once.
+  - Test Suite execution: 6 tests pass in 203ms with 0 failures (`npm test`). Removed stale counter template files.
 
 ---
 
