@@ -109,6 +109,23 @@
     - Tested duplicate toppings &rarr; Deduplicated, prices counted once.
     - Tested spoofed client total &rarr; Client values ignored, server computed exact integer cents ($14.00).
     - Direct `GET /Order/` verified protected with `401 Unauthorized`.
+- **Accessible One-Page UI (Checkpoint 7):**
+  - Designed and implemented a senior-friendly, high-contrast, linear single-page ordering experience in `web/index.html`, `web/styles.css`, and `web/index.js`.
+  - Accessible & Cognitive-Load Design Features:
+    - Step 1: Select Your Pizza — large interactive cards with graphic-novel pizza illustrations, ingredients description, base price in dollars/cents, keyboard navigation (Tab, Space, Enter), and aria-checked radio states.
+    - Step 2: Add Extra Toppings — large checkbox tiles with min 54px touch targets, clear price deltas (+$1.50, +$1.00), and visible active checkmarks.
+    - Step 3: Customer Information — single prominent text input for customer name with inline validation and clear error cues.
+    - Live Order Summary & Total — sticky order summary dynamically recalculating running total in dollars/cents as items are clicked/toggled, with submit button reflecting live total (`Place Order • $14.50`).
+    - Live Screen Reader Announcements — polite live region announcing pizza selection, toppings added/removed, price updates, and order placement.
+    - Confirmation Receipt View — clean transition upon order placement displaying order reference UUID, customer name, status badge (`Baking (Placed)`), estimated ready time (~20 minutes), itemized breakdown, total paid, and a "Place Another Order" reset button.
+  - End-to-End Automated Browser Subagent Verification:
+    - Successfully navigated to `http://localhost:9926/`.
+    - Verified all 3 pizzas loaded with graphic novel art.
+    - Verified selecting Margherita ($12.00) updated summary.
+    - Verified selecting Extra cheese (+$1.50) and Mushrooms (+$1.00) updated total to $14.50.
+    - Entered customer name "Ronnie Taylor", submitted order, verified order created in Harper (`tables.Order`), and confirmation receipt displayed with total $14.50 and UUID `342e0e49-b9a1-4f86-b714-5f48823c18a3`.
+    - Clicked "Place Another Order" and verified form reset cleanly to initial state.
+    - Zero browser console errors throughout entire flow.
 
 ---
 

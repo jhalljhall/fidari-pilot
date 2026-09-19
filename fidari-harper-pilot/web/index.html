@@ -3,25 +3,236 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>fidari-harper-pilot</title>
+    <title>Fidari Pizza | Neighborhood Artisan Pies</title>
+    <meta name="description" content="Order fresh, artisan pizzas crafted with honest ingredients. Simple, accessible single-page ordering." />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet" />
   </head>
   <body>
-    <main>
-      <h1>fidari-harper-pilot</h1>
-      <p>
-        This is an example of serving static assets using the built-in
-        <a
-          href="https://docs.harperdb.io/docs/reference/components/built-in-extensions#static"
-        >static component</a>. <br />
-        You can use this component to serve web applications!
-      </p>
-      <div>
-        <p class="count" id="count">0</p>
-        <button class="decrement" id="decrement">-</button>
-        <button class="increment" id="increment">+</button>
-      </div>
-    </main>
+    <!-- Skip link for keyboard accessibility -->
+    <a href="#ordering-form" class="skip-link">Skip to ordering form</a>
+
+    <div class="site-wrapper">
+      <header class="site-header" role="banner">
+        <div class="header-container">
+          <div class="brand">
+            <span class="brand-badge" aria-hidden="true">Est. 2026</span>
+            <h1 class="brand-title">Fidari Pizza</h1>
+            <p class="brand-tagline">Honest, artisan pies crafted with love and fresh ingredients</p>
+          </div>
+          <div class="store-badge" aria-label="Store details">
+            <span class="status-indicator" aria-hidden="true"></span>
+            <div>
+              <p class="store-status">Kitchen Open &bull; Baking Fresh</p>
+              <p class="store-time">Pickup ready in ~20 minutes</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" class="main-content" role="main">
+        <!-- Live status region for screen readers -->
+        <div id="sr-announcements" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+        <!-- Notification / Error Banner -->
+        <div id="error-banner" class="alert-banner hidden" role="alert" aria-live="assertive">
+          <span class="alert-icon" aria-hidden="true">⚠️</span>
+          <span id="error-message" class="alert-text"></span>
+          <button id="dismiss-error-btn" type="button" class="dismiss-btn" aria-label="Dismiss error">&times;</button>
+        </div>
+
+        <!-- Order Placement Form View -->
+        <form id="ordering-form" class="ordering-layout" novalidate>
+          <div class="ordering-steps">
+            
+            <!-- Step 1: Pizza Selection -->
+            <section class="order-step" aria-labelledby="step-1-title">
+              <div class="step-header">
+                <span class="step-number" aria-hidden="true">1</span>
+                <div>
+                  <h2 id="step-1-title" class="step-title">Choose Your Pizza</h2>
+                  <p class="step-desc">Select one hand-crafted artisan pie</p>
+                </div>
+              </div>
+
+              <div id="pizzas-loading" class="loading-placeholder" role="status">
+                <div class="spinner" aria-hidden="true"></div>
+                <p>Loading fresh pizza selection...</p>
+              </div>
+
+              <fieldset class="pizza-fieldset">
+                <legend class="sr-only">Choose one pizza</legend>
+                <div id="pizzas-grid" class="pizzas-grid" role="radiogroup" aria-labelledby="step-1-title">
+                  <!-- Injected via JavaScript from /Pizza/ -->
+                </div>
+              </fieldset>
+            </section>
+
+            <!-- Step 2: Toppings -->
+            <section class="order-step" aria-labelledby="step-2-title">
+              <div class="step-header">
+                <span class="step-number" aria-hidden="true">2</span>
+                <div>
+                  <h2 id="step-2-title" class="step-title">Add Extra Toppings</h2>
+                  <p class="step-desc">Customize your pie (optional)</p>
+                </div>
+              </div>
+
+              <div id="toppings-loading" class="loading-placeholder" role="status">
+                <div class="spinner" aria-hidden="true"></div>
+                <p>Loading toppings list...</p>
+              </div>
+
+              <fieldset class="toppings-fieldset">
+                <legend class="sr-only">Choose optional toppings</legend>
+                <div id="toppings-grid" class="toppings-grid">
+                  <!-- Injected via JavaScript from /Topping/ -->
+                </div>
+              </fieldset>
+            </section>
+
+            <!-- Step 3: Customer Information -->
+            <section class="order-step" aria-labelledby="step-3-title">
+              <div class="step-header">
+                <span class="step-number" aria-hidden="true">3</span>
+                <div>
+                  <h2 id="step-3-title" class="step-title">Who is this order for?</h2>
+                  <p class="step-desc">We will call this name when your pizza is ready</p>
+                </div>
+              </div>
+
+              <div class="input-group">
+                <label for="customer-name" class="input-label">
+                  Your Full Name <span class="required-star" aria-hidden="true">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="customer-name"
+                  name="customerName"
+                  class="text-input"
+                  placeholder="e.g. Ronnie Taylor"
+                  autocomplete="name"
+                  required
+                  aria-required="true"
+                  aria-describedby="name-helper"
+                />
+                <p id="name-helper" class="input-helper">Please enter your name so we can label your pizza box.</p>
+                <p id="name-error" class="field-error sr-only" role="alert">Please enter your name before placing the order.</p>
+              </div>
+            </section>
+          </div>
+
+          <!-- Sticky Summary & Checkout Sidebar -->
+          <aside class="order-summary-sidebar" aria-labelledby="summary-title">
+            <div class="summary-card">
+              <h2 id="summary-title" class="summary-title">Order Summary</h2>
+
+              <div class="summary-details">
+                <div class="summary-row">
+                  <span id="summary-pizza-name" class="summary-item">No pizza selected</span>
+                  <span id="summary-pizza-price" class="summary-price">$0.00</span>
+                </div>
+
+                <div id="summary-toppings-container" class="summary-toppings-list hidden">
+                  <!-- Populated dynamically -->
+                </div>
+
+                <div class="summary-divider" role="separator"></div>
+
+                <div class="summary-row total-row">
+                  <span class="total-label">Total Amount</span>
+                  <output id="summary-total-price" class="total-price" for="customer-name">$0.00</output>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                id="place-order-btn"
+                class="primary-submit-btn"
+                disabled
+                aria-disabled="true"
+              >
+                <span class="btn-text">Select a Pizza to Continue</span>
+                <span class="btn-spinner hidden" aria-hidden="true"></span>
+              </button>
+
+              <div class="guarantee-badge">
+                <span class="guarantee-icon" aria-hidden="true">🛡️</span>
+                <span>Server-verified pricing &bull; Pay at pickup</span>
+              </div>
+            </div>
+          </aside>
+        </form>
+
+        <!-- Order Confirmation Receipt View (Initially Hidden) -->
+        <section id="confirmation-view" class="confirmation-container hidden" aria-labelledby="confirmation-heading" tabindex="-1">
+          <div class="receipt-card">
+            <div class="receipt-header">
+              <div class="success-check-icon" aria-hidden="true">✓</div>
+              <span class="receipt-badge">Order Confirmed</span>
+              <h2 id="confirmation-heading" class="receipt-title">Order Received!</h2>
+              <p class="receipt-subtitle">Thank you, <strong id="receipt-customer-name"></strong>. Your artisan pizza is being freshly baked.</p>
+            </div>
+
+            <div class="receipt-details">
+              <div class="receipt-info-grid">
+                <div class="info-block">
+                  <span class="info-label">Order Reference</span>
+                  <span id="receipt-order-id" class="info-value font-mono"></span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Status</span>
+                  <span class="info-value status-pill" id="receipt-status">Baking (Placed)</span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Estimated Ready Time</span>
+                  <span class="info-value">~20 minutes</span>
+                </div>
+                <div class="info-block">
+                  <span class="info-label">Pickup Location</span>
+                  <span class="info-value">Fidari Counter &bull; Downtown</span>
+                </div>
+              </div>
+
+              <div class="receipt-divider" role="separator"></div>
+
+              <h3 class="receipt-items-heading">Order Breakdown</h3>
+              <div class="receipt-line-item">
+                <div class="item-name-group">
+                  <strong id="receipt-pizza-name" class="item-name"></strong>
+                  <span class="item-badge">Artisan Pie</span>
+                </div>
+                <span id="receipt-pizza-price" class="item-price"></span>
+              </div>
+
+              <div id="receipt-toppings-group" class="receipt-toppings-group">
+                <!-- Injected via JavaScript -->
+              </div>
+
+              <div class="receipt-divider" role="separator"></div>
+
+              <div class="receipt-line-item receipt-total">
+                <span>Total Paid at Pickup</span>
+                <strong id="receipt-total-price" class="receipt-total-amount"></strong>
+              </div>
+            </div>
+
+            <div class="receipt-actions">
+              <button type="button" id="start-new-order-btn" class="secondary-btn">
+                Place Another Order
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer" role="contentinfo">
+        <p>Fidari Pizza &bull; Powered by Harper 5.x unified engine on Harper Fabric</p>
+        <p class="footer-sub">Accessibility First &bull; Zero Floating-Point Rounding &bull; Server-Authoritative Integrity</p>
+      </footer>
+    </div>
 
     <script type="module" src="index.js"></script>
   </body>
