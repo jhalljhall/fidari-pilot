@@ -62,6 +62,11 @@
   - Tested `curl -i http://localhost:9926/` -> `HTTP/1.1 200 OK`.
   - Verified hot-reloading volume mounts from macOS to container.
   - Host Harper CLI verified at `/opt/homebrew/bin/harper` (v5.2.13).
+- **Fabric Early Deployment (Checkpoint 3):**
+  - *Snag 1 (Placeholder URL):* Template generated `.env` with placeholder `CLI_TARGET='YOUR_FABRIC.HARPER.FAST_CLUSTER_URL_HERE'`, which overrode the login session and failed with `getaddrinfo ENOTFOUND`. Resolved by setting `CLI_TARGET=https://fidari-pilot.2819-studios.harperfabric.com`.
+  - *Snag 2 (Deploy Secrets):* Template had `by_ref=true credential=true` which looked for an encrypted cluster git secret. Switched to direct push deploy (`harper deploy restart=true replicated=true`), perfectly matching the FDE pilot strategy.
+  - *Snag 3 (Replication Dependency Error):* Origin node deployed, but peer node `ocp-us-east1-b-1.fidari-pilot.2819-studios.harperfabric.com` failed with `Unable to find package @harperfast/schema-codegen`. Reason: `@harperfast/schema-codegen` was in `devDependencies` in `package.json`, which peer node production installs omit. Moved `@harperfast/schema-codegen` into `dependencies`.
+  - *Result:* Deployment succeeded across all nodes (`deployment_id: 705171c4-ecf4-4bdd-9b84-a964574ba1fb`), Harper restarted on Fabric, and `curl -i https://fidari-pilot.2819-studios.harperfabric.com/` verified live with `HTTP/1.1 200 OK`!
 
 ---
 
