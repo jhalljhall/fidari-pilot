@@ -88,6 +88,27 @@
     - 3 Pizzas seeded: Margherita ($12.00), Pepperoni ($14.00), Garden Veggie ($13.00) with image URLs.
     - 5 Toppings seeded: Extra cheese ($1.50), Mushrooms ($1.00), Pepperoni ($2.00), Bell peppers ($1.00), Black olives ($1.00).
   - Verified unauthenticated `GET /Pizza/` and `GET /Topping/` return the full seeded menu in JSON with prices strictly in integer cents.
+- **Custom PlaceOrder Resource & Server-Authoritative Pricing (Checkpoint 6):**
+  - Created `resources/PlaceOrder.ts` extending `Resource` to handle domain checkout logic.
+  - *Harper Context Authorization Nuance Discovered:*
+    - In Harper REST requests, `request.authorize = true` is initialized on incoming requests. Overriding `static async post(target, data, context)` replaces the default wrapper. The first internal database lookup within the override inherits `context.authorize = true` and would trigger access control against unauthenticated callers for internal table reads.
+    - Setting `context.authorize = false` at the top of the custom handler marks internal lookups within the trusted method execution as privileged, while keeping direct table endpoints (`GET/POST /Order/`) protected behind 401 authentication.
+  - Added `allowCreate() { return true; }` and `allowRead() { return true; }` to `PlaceOrder` to allow guest access.
+  - Implemented both `/place-order` and `/PlaceOrder` routes cleanly.
+  - Implemented authoritative business logic:
+    - Input validation: Trims and verifies `customerName` (rejects whitespace/empty with 400).
+    - Pizza verification: Loads from `tables.Pizza`, validates `available`, returns 404 if not found or 400 if unavailable.
+    - Topping verification: Deduplicates IDs, loads each from `tables.Topping`, validates `available`, returns 404 if invalid.
+    - Server calculation: `totalCents = basePriceCents + toppingTotalCents` strictly calculated server-side; ignores any spoofed client totals.
+    - Snapshot persistence: Writes immutable order snapshot to `tables.Order` with `status: 'placed'`, customer name, and item names.
+  - Verification & Test Results:
+    - Tested missing customer name &rarr; `400 Bad Request`.
+    - Tested missing pizzaId &rarr; `400 Bad Request`.
+    - Tested non-existent pizzaId &rarr; `404 Not Found`.
+    - Tested non-existent toppingId &rarr; `404 Not Found`.
+    - Tested duplicate toppings &rarr; Deduplicated, prices counted once.
+    - Tested spoofed client total &rarr; Client values ignored, server computed exact integer cents ($14.00).
+    - Direct `GET /Order/` verified protected with `401 Unauthorized`.
 
 ---
 
