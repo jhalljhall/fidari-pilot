@@ -1,0 +1,29 @@
+type Pizza @table {
+  id: ID @primaryKey
+  name: String!
+  description: String
+  basePriceCents: Int!
+  available: Boolean!
+  imageUrl: String
+}
+
+type Topping @table {
+  id: ID @primaryKey
+  name: String!
+  priceCents: Int!
+  available: Boolean!
+}
+
+type Order @table @export {
+  id: ID @primaryKey
+  customerName: String!
+  pizzaId: ID!
+  pizzaName: String!
+  toppingIds: [ID]
+  toppingNames: [String]
+  basePriceCents: Int!
+  toppingTotalCents: Int!
+  totalCents: Int!
+  status: String! @indexed
+  createdAt: Date @createdTime
+}

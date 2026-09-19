@@ -67,6 +67,17 @@
   - *Snag 2 (Deploy Secrets):* Template had `by_ref=true credential=true` which looked for an encrypted cluster git secret. Switched to direct push deploy (`harper deploy restart=true replicated=true`), perfectly matching the FDE pilot strategy.
   - *Snag 3 (Replication Dependency Error):* Origin node deployed, but peer node `ocp-us-east1-b-1.fidari-pilot.2819-studios.harperfabric.com` failed with `Unable to find package @harperfast/schema-codegen`. Reason: `@harperfast/schema-codegen` was in `devDependencies` in `package.json`, which peer node production installs omit. Moved `@harperfast/schema-codegen` into `dependencies`.
   - *Result:* Deployment succeeded across all nodes (`deployment_id: 705171c4-ecf4-4bdd-9b84-a964574ba1fb`), Harper restarted on Fabric, and `curl -i https://fidari-pilot.2819-studios.harperfabric.com/` verified live with `HTTP/1.1 200 OK`!
+- **Schema & CRUD Verification (Checkpoint 4):**
+  - Added `Pizza`, `Topping`, and `Order` tables in `schemas/schema.graphql`.
+  - Configured table extensions in `resources/Pizza.ts` and `resources/Topping.ts`:
+    - Omitted `@export` from `Pizza` and `Topping` in `schema.graphql` so the TypeScript Resource classes own the routes.
+    - Implemented `allowRead() { return true; }` to permit guest browser access for viewing the menu without credentials.
+    - Preserved authentication protection on writes (unauthorized `DELETE` requests return `401 Unauthorized`).
+    - `Order` retains `@export` and requires admin credentials for direct REST queries, ensuring customer order data is never publicly exposed.
+  - Verified CRUD:
+    - Created sample `Pizza` (`margherita`) and `Topping` (`extra-cheese`) via authenticated `POST`.
+    - Verified unauthenticated reads on `GET /Pizza/`, `GET /Pizza/margherita`, `GET /Topping/`, and `GET /Topping/extra-cheese`.
+    - Verified `GET /Order/` initialized and responding.
 
 ---
 
