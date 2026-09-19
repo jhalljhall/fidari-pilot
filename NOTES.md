@@ -78,6 +78,16 @@
     - Created sample `Pizza` (`margherita`) and `Topping` (`extra-cheese`) via authenticated `POST`.
     - Verified unauthenticated reads on `GET /Pizza/`, `GET /Pizza/margherita`, `GET /Topping/`, and `GET /Topping/extra-cheese`.
     - Verified `GET /Order/` initialized and responding.
+- **Menu Seeding & Graphic Novel Art (Checkpoint 5):**
+  - Generated AI graphic-novel pizza illustrations for all three pizzas (`margherita.jpg`, `pepperoni.jpg`, `garden.jpg`) and stored them in `web/images/pizzas/`.
+  - Configured Harper's static file handler in `config.yaml` to `static: files: 'web/**'` to recursively serve nested directories.
+  - *Harper Static Server Nuance:* Harper's static plugin serves `GET` requests; standard `curl -I` (which sends a `HEAD` request) returns 404. Verified static images with `curl -s -o /dev/null -w "%{http_code}"` confirming HTTP 200 and ~1.2MB payloads.
+  - Created idempotent seed script `scripts/seed.mjs` using `PUT /{Table}/{id}` upserts to allow clean re-runs without duplicate keys or constraint errors.
+  - Added `"seed": "node scripts/seed.mjs"` to `package.json`.
+  - Executed `npm run seed`:
+    - 3 Pizzas seeded: Margherita ($12.00), Pepperoni ($14.00), Garden Veggie ($13.00) with image URLs.
+    - 5 Toppings seeded: Extra cheese ($1.50), Mushrooms ($1.00), Pepperoni ($2.00), Bell peppers ($1.00), Black olives ($1.00).
+  - Verified unauthenticated `GET /Pizza/` and `GET /Topping/` return the full seeded menu in JSON with prices strictly in integer cents.
 
 ---
 
