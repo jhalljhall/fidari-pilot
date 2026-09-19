@@ -4,11 +4,32 @@
  * Populates Pizza and Topping tables with deterministic IDs, integer cents, and static image paths.
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
+import os from 'node:os';
+
 const TARGET_URL = process.env.HARPER_TARGET || 'http://localhost:9926';
 const USERNAME = process.env.HARPER_USERNAME || 'admin';
 const PASSWORD = process.env.HARPER_PASSWORD || 'Password123!';
 
-const authHeader = 'Basic ' + Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
+let authHeader = 'Basic ' + Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
+
+if (process.env.HARPER_TOKEN) {
+  authHeader = `Bearer ${process.env.HARPER_TOKEN}`;
+} else if (TARGET_URL.includes('harperfabric.com')) {
+  try {
+    const credsPath = path.join(os.homedir(), '.harperdb', 'credentials.json');
+    if (fs.existsSync(credsPath)) {
+      const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
+      const targetMatch = Object.keys(creds.targets || {}).find((k) => k.includes('fidari-pilot'));
+      if (targetMatch && creds.targets[targetMatch].operation_token) {
+        authHeader = `Bearer ${creds.targets[targetMatch].operation_token}`;
+      }
+    }
+  } catch (err) {
+    console.warn('Could not read Fabric credentials from ~/.harperdb/credentials.json:', err.message);
+  }
+}
 
 const PIZZAS = [
   {

@@ -135,11 +135,54 @@
     4. Server-Authoritative Pricing & Snapshots: Submits order with intentional client-spoofed prices (`basePriceCents: 10, totalCents: 15`), verifies server ignores client values, calculates exact integer cents ($14.50), snapshots pizza name & topping names, and sets initial status `placed`.
     5. Deduplication: Submits duplicate toppings in an order, verifies deduplication to 1 topping and prices counted only once.
   - Test Suite execution: 6 tests pass in 203ms with 0 failures (`npm test`). Removed stale counter template files.
+- **Deploy Completed Vertical Slice to Harper Fabric (Checkpoint 9):**
+  - Executed `npm run deploy` (`harper deploy restart=true replicated=true`):
+    - Uploaded application package, static assets, schemas, and custom resources.
+    - Successfully built and replicated across Fabric cluster nodes (`fidari-pilot.2819-studios.harperfabric.com` and `ocp-us-east1-b-1.fidari-pilot.2819-studios.harperfabric.com`).
+    - Deployment ID: `c95e7834-79b0-450b-bc8f-d24176c9cb1a`.
+  - Updated `scripts/seed.mjs` to auto-read Bearer `operation_token` from `~/.harperdb/credentials.json` for Fabric targets.
+  - Executed `HARPER_TARGET=https://fidari-pilot.2819-studios.harperfabric.com npm run seed` successfully seeding all 3 pizzas and 5 toppings.
+  - Executed full automated smoke test suite against live Fabric:
+    `HARPER_TARGET=https://fidari-pilot.2819-studios.harperfabric.com npm test` &rarr; 6 passed in 1069ms!
+  - Executed live browser subagent test against public HTTPS URL:
+    `https://fidari-pilot.2819-studios.harperfabric.com/`
+    - Verified Pepperoni + Bell peppers order for "Justin Hall" placed cleanly with total $15.00.
+    - Verified instant receipt view with order reference UUID.
+    - Confirmed 0 console errors in cloud production.
 
 ---
 
 ## 5. What to Change Next / Production Roadmap
-1. Multi-store location selector and inventory-level availability toggles.
-2. Order lifecycle status progression (placed -> baking -> out for delivery -> completed) backed by Harper pub/sub or WebSockets.
-3. WCAG 2.1 AA formal accessibility audit with screen-reader testing.
-4. Promotion pipeline moving from development push deploys to Git-backed automated pull deploys.
+1. **Real-Time Order Lifecycle (Harper Pub/Sub / WebSockets):**
+   - Status progression (`placed` &rarr; `baking` &rarr; `out_for_delivery` &rarr; `completed`).
+   - Subscribe browser client directly to `/Order/:id` via Harper's native WebSocket / SSE subscription (`Resource.subscribe()`) for live kitchen progress without polling.
+2. **Multi-Store & Inventory Management:**
+   - Add `Store` table with store-specific inventory and active availability toggles.
+   - Geographic store finder and delivery radius validation.
+3. **Formal WCAG 2.1 AA Audit & Localization:**
+   - Formal axe-core automated audit and voiceover screen reader testing on mobile/tablet.
+   - Multi-language support (English / Spanish) for neighborhood demographics.
+4. **Automated CI/CD Promotion:**
+   - Switch from CLI push deployments to Git-backed automated pull deployments triggered on release tags (`v*.*.*`) using GitHub Actions and Harper's encrypted sealed-secret store.
+
+---
+
+## 6. FDE Presentation Walkthrough & Key Talking Points
+
+### Narrative & Customer Alignment
+* **Entering Ambiguity:** The original Fidari discovery document was a sprawling 36-page MVP spec covering driver dispatch, multi-store franchise portals, Stripe processing, and chatbot interfaces. An effective FDE cuts through the noise: what is the single highest-value transaction? A customer ordering pizza.
+* **Persona Ronnie:** Focus on an older customer where high contrast, clear visual feedback, large tap targets, and lack of unexpected friction build trust immediately.
+* **Why Not an External DB/ORM?** In traditional stacks, you set up PostgreSQL, Prisma, Redis, Express/FastAPI, and Nginx. Harper replaces that entire multi-tier complexity with one unified engine where storage, caching, APIs, and business logic live in the same runtime.
+
+### Technical Deep-Dive & Architecture Choices
+1. **Integer Cents vs IEEE-754 Floats:**
+   * Money is never represented as floats (`12.00`). All storage and calculations use integer cents (`1200`). Prevents cumulative precision errors in commerce systems.
+2. **Server-Authoritative Calculation vs Trusting the Client:**
+   * Any client-sent totals or prices are discarded. `PlaceOrder.post` loads fresh menu prices from LMDB storage and computes the authoritative order total server-side.
+3. **Historical Snapshot Arrays:**
+   * Instead of only storing foreign keys to menu items, `Order` persists name and price snapshots. If menu prices change next week, past orders and financial auditing remain 100% accurate.
+4. **Table Extensions vs Custom Resources:**
+   * **Extended Tables (`Pizza.ts`, `Topping.ts`):** Used for domain entities that map to tables, extending them to customize authorization (`allowRead() { return true; }`) while inheriting Harper's declarative REST engine.
+   * **Custom Resource (`PlaceOrder.ts`):** Used for transactional workflows that coordinate multiple models, enforce business rules, calculate totals, and record snapshots.
+5. **Harper Fabric Clustering:**
+   * Built-in peer replication across geographically distributed nodes with zero manual database clustering or replication software needed.
